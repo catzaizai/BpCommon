@@ -8,5 +8,6 @@ namespace BpCommon
 {
     public class BpFactory
     {
+        
     }
 }
