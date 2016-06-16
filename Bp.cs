@@ -86,7 +86,11 @@ namespace BpCommon
 
         public void Train(double[] trainData, double[] target)
         {
-            
+            LoadInput(trainData);
+            LoadTarget(target);
+            Forward();
+            CalculateDelta();
+            AdjustWeight();
         }
 
         #region Private Method
@@ -181,9 +185,49 @@ namespace BpCommon
             OptErrSum = errSum;
         }
 
+        /// <summary>
+        /// Calculate hidden errors
+        /// </summary>
         private void HiddenErr()
         {
-            
+            var errSum = 0.0;
+            for (var i = 1; i != _hidDelta.Length; i++)
+            {
+                var o = _hidDelta[i];
+                var sum = _optDelta.Select((t, j) => _hidOptWeights[i, j]*t).Sum();
+                _hidDelta[i] = o*(1d - o)*sum;
+                errSum += Math.Abs(_hidDelta[i]);
+            }
+            HidErrSum = errSum;
+        }
+
+        /// <summary>
+        /// Calculate errors of all layers
+        /// </summary>
+        private void CalculateDelta()
+        {
+            OutputErr();
+            HiddenErr();
+        }
+
+        private void AdjustWeight(double[] delta, double[] layer, double[,] weight, double[,] prevWeight)
+        {
+            layer[0] = 1;
+            for (var i = 1; i < delta.Length; i++)
+            {
+                for (var j = 0; j < layer.Length; j++)
+                {
+                    var newVal = _momentum*prevWeight[j, i] + _eta*delta[j]*layer[j];
+                    weight[j, i] += newVal;
+                    prevWeight[j, i] = newVal;
+                }
+            }
+        }
+
+        private void AdjustWeight()
+        {
+            AdjustWeight(_optDelta, _hidden, _hidOptWeights, _hidOptPrevUptWeights);
+            AdjustWeight(_hidDelta, _input, _iptHidWeights, _iptHidPrevUptWeights);
         }
 
         private double Sigmoid(double val)

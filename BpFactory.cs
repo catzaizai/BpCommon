@@ -8,6 +8,11 @@ namespace BpCommon
 {
     public class BpFactory
     {
-        
+        private static Bp _bp;
+
+        public static void Initialization(int inputSize, int hiddenSize, int outputSize)
+        {
+            _bp = new Bp(inputSize, hiddenSize, outputSize);
+        }
     }
 }
